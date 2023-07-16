@@ -15,8 +15,20 @@ const api = {
    *
    * The function below can accessed using `window.Main.sayHello`
    */
-  sendMessage: (message: string) => {
-    ipcRenderer.send('message', message);
+  loadConfig: () => {
+    return ipcRenderer.invoke('loadConfig').then((config) => {
+      // Assuming config is a JSON object
+      // You can process the config here if needed
+      return config;
+    });
+  },
+  saveConfig: (config: string) => {
+    // eslint-disable-next-line no-shadow
+    return ipcRenderer.invoke('saveConfig', config).then((config) => {
+      // Assuming config is a JSON object
+      // You can process the config here if needed
+      return config;
+    });
   },
   /**
     Here function for AppBar

@@ -2,11 +2,32 @@
 import { join } from 'path';
 
 // Packages
-import { BrowserWindow, app, ipcMain, IpcMainEvent } from 'electron';
+import { BrowserWindow, app, ipcMain, IpcMainEvent, IpcMainInvokeEvent } from 'electron';
 import isDev from 'electron-is-dev';
+import fs from 'fs';
 
 const height = 600;
 const width = 800;
+
+async function handleLoadConfig() {
+  const configPath = join(__dirname, 'config.json');
+  // if config file not exist, create it
+  if (!fs.existsSync(configPath)) {
+    fs.writeFileSync(configPath, '{}');
+  }
+
+  const config = fs.readFileSync(configPath, 'utf-8');
+  return JSON.stringify(config, null, 2);
+}
+
+function handleSaveConfig(_event: IpcMainInvokeEvent, args: any) {
+  const configPath = join(__dirname, 'config.json');
+  fs.writeFileSync(configPath, args);
+
+  console.log(args);
+
+  return args;
+}
 
 function createWindow() {
   // Create the browser window.
@@ -31,28 +52,36 @@ function createWindow() {
     window?.loadFile(url);
   }
   // Open the DevTools.
-  // window.webContents.openDevTools();
-
-  // For AppBar
-  ipcMain.on('minimize', () => {
-    // eslint-disable-next-line no-unused-expressions
-    window.isMinimized() ? window.restore() : window.minimize();
-    // or alternatively: win.isVisible() ? win.hide() : win.show()
-  });
-  ipcMain.on('maximize', () => {
-    // eslint-disable-next-line no-unused-expressions
-    window.isMaximized() ? window.restore() : window.maximize();
+  window.webContents.openDevTools({
+    mode: 'detach'
   });
 
-  ipcMain.on('close', () => {
-    window.close();
-  });
+  // for config
+  // ipcMain.on('loadConfig', () => {
+  //   const configPath = join(__dirname, 'config.json');
+  //   // if config file not exist, create it
+  //   if (!fs.existsSync(configPath)) {
+  //     fs.writeFileSync(configPath, '{}');
+  //   }
+  //
+  //   const config = fs.readFileSync(configPath, 'utf-8');
+  //   window.webContents.send('loadConfig', config);
+  // });
+  //
+  // ipcMain.on('saveConfig', (_event: IpcMainEvent, config: string) => {
+  //   const configPath = join(__dirname, 'config.json');
+  //   fs.writeFileSync(configPath, config);
+  //
+  //   window.webContents.send('saveConfig', config);
+  // });
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  ipcMain.handle('loadConfig', () => handleLoadConfig());
+  ipcMain.handle('saveConfig', (event, args) => handleSaveConfig(event, args));
   createWindow();
 
   app.on('activate', () => {
