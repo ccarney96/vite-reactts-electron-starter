@@ -44,6 +44,10 @@ const useConfig = (): useConfigProps => {
         .then((configData) => {
           const config2 = JSON.parse(configData) as Config; // Type assertion for parsed data
           setConfig(config2);
+          toast({
+            title: 'Config loaded',
+            description: 'Your config has been loaded successfully.',
+          });
         })
         .catch((error) => {
           // Handle error if loadConfig fails
