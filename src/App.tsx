@@ -5,14 +5,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Map } from './models/map';
 import { Agent } from './models/agent';
 import { Button } from './components/ui/button';
-import { useToast } from './components/ui/use-toast';
 import { Toaster } from './components/ui/toaster';
+import useConfig from './hooks/useConfig';
 
 function App() {
   const [maps, setMaps] = useState<Map[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [config, setConfig] = useState<{ [key: string]: string }>({});
-  const { toast } = useToast();
+
+  const { config, saveConfig, setConfig, loadConfig } = useConfig();
 
   useEffect(() => {
     Promise.all([
@@ -23,47 +23,25 @@ function App() {
       .then(([data1, data2]) => {
         setMaps(data1.data);
         setAgents(data2.data);
+        loadConfig();
       });
-  }, []);
-
-  useEffect(() => {
-    if (window.Main) {
-      // Load the config when the component mounts
-      window.Main.loadConfig().then((configData) => {
-        setConfig(configData);
-      });
-    }
   }, []);
 
   return (
     <div className="container mx-auto">
-      <pre>{JSON.stringify(config, null, 2)}</pre>
       <Toaster />
       <div className="flex justify-between items-center mt-5 pb-5">
         <Button
           variant="outline"
           className="mr-2 w-full sm:w-auto"
           onClick={() => {
-            window.Main.saveConfig(JSON.stringify(config, null, 2)).then((r) => console.log('saved config', r));
-            toast({
-              title: 'Config saved',
-              description: 'Your config has been saved successfully.'
-            });
+            saveConfig(config);
           }}
         >
           <Save className="w-6 h-6 mr-2" />
           <span className="text-sm font-semibold">Save Config</span>
         </Button>
-        <Button
-          variant="outline"
-          className="w-full sm:w-auto"
-          onClick={() => {
-            toast({
-              title: 'Config loaded',
-              description: 'Your config has been loaded successfully.'
-            });
-          }}
-        >
+        <Button variant="outline" className="w-full sm:w-auto" onClick={loadConfig}>
           <Download className="w-6 h-6 mr-2" />
           Load Config
         </Button>
@@ -74,7 +52,7 @@ function App() {
           <Card key={map.uuid}>
             <CardHeader className="flex justify-between items-center">
               <CardTitle>{map.displayName}</CardTitle>
-              <img src={map.splash} alt={map.displayName} />
+              {/* <img src={map.splash} alt={map.displayName} /> */}
             </CardHeader>
 
             <CardContent className="flex justify-between items-center">
@@ -91,8 +69,12 @@ function App() {
                   {agents.map((agent) => (
                     <SelectItem key={agent.uuid} value={agent.displayName}>
                       <div className="flex items-center">
-                        <img src={agent.displayIcon} alt={agent.displayName} className="w-6 h-6 mr-2" />
-                        <span>{agent.displayName}</span>
+                        <img
+                          className="w-4 h-4 mr-2 rounded-full"
+                          src={agent.displayIcon}
+                          alt={agent.displayName}
+                        />
+                        {agent.displayName}
                       </div>
                     </SelectItem>
                   ))}

@@ -2,7 +2,7 @@
 import { join } from 'path';
 
 // Packages
-import { BrowserWindow, app, ipcMain, IpcMainEvent, IpcMainInvokeEvent } from 'electron';
+import { BrowserWindow, app, ipcMain, IpcMainInvokeEvent, IpcMainEvent } from 'electron';
 import isDev from 'electron-is-dev';
 import fs from 'fs';
 
@@ -13,20 +13,19 @@ async function handleLoadConfig() {
   const configPath = join(__dirname, 'config.json');
   // if config file not exist, create it
   if (!fs.existsSync(configPath)) {
+    // create empty config file
     fs.writeFileSync(configPath, '{}');
   }
 
   const config = fs.readFileSync(configPath, 'utf-8');
-  return JSON.stringify(config, null, 2);
+  return config;
 }
 
-function handleSaveConfig(_event: IpcMainInvokeEvent, args: any) {
+function handleSaveConfig(config: string) {
+  console.log(config);
   const configPath = join(__dirname, 'config.json');
-  fs.writeFileSync(configPath, args);
-
-  console.log(args);
-
-  return args;
+  fs.writeFileSync(configPath, config);
+  return JSON.stringify(config);
 }
 
 function createWindow() {
@@ -81,7 +80,7 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   ipcMain.handle('loadConfig', () => handleLoadConfig());
-  ipcMain.handle('saveConfig', (event, args) => handleSaveConfig(event, args));
+  ipcMain.handle('saveConfig', (_event: IpcMainInvokeEvent, config: string) => handleSaveConfig(config));
   createWindow();
 
   app.on('activate', () => {
