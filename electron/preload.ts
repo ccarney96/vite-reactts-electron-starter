@@ -30,21 +30,18 @@ const api = {
       return config;
     });
   },
-  /**
-    Here function for AppBar
-   */
-  Minimize: () => {
-    ipcRenderer.send('minimize');
+  connectToWebsocket: () => {
+    return ipcRenderer.invoke('connectToWebsocket').then((connected: boolean) => {
+      console.log(connected);
+      return connected;
+    });
   },
-  Maximize: () => {
-    ipcRenderer.send('maximize');
+  getLockfile: () => {
+    return ipcRenderer.invoke('getLockfile').then((lockfile: string) => {
+      console.log(lockfile);
+      return lockfile;
+    });
   },
-  Close: () => {
-    ipcRenderer.send('close');
-  },
-  /**
-   * Provide an easier way to listen to events
-   */
   on: (channel: string, callback: (data: any) => void) => {
     ipcRenderer.on(channel, (_, data) => callback(data));
   }

@@ -9,6 +9,7 @@ import { Toaster } from './components/ui/toaster';
 import useConfig from './hooks/useConfig';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { cn } from './lib/utils';
+import { toast } from './components/ui/use-toast';
 
 type Tab = {
   id: string;
@@ -26,6 +27,18 @@ function App() {
   const [selectedTab, setSelectedTab] = useState('agents');
 
   const { config, saveConfig, setConfig, loadConfig } = useConfig();
+
+  useEffect(() => {
+    if (window.Main) {
+      window.Main.getLockfile().then((r) => {
+        console.log(r);
+        toast({
+          title: 'Lockfile',
+          description: 'Successfully got lockfile.'
+        });
+      });
+    }
+  }, []);
 
   useEffect(() => {
     Promise.all([
